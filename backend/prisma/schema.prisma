@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================
+// ORGANIZACIÓN Y USUARIOS (multi-tenant desde día 1)
+// ============================================================
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  projects Project[]
+}
+
+model User {
+  id             String        @id // = Supabase auth.users.id (UUID de Supabase)
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  email          String        @unique
+  name           String
+  avatarUrl      String?
+  role           Role          @default(COLLABORATOR)
+  aiAssistant    AssistantKind @default(COSMO) // qué IA ve este user al chatear
+  // Preferencias
+  theme          String        @default("light") // light, dark
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  projectAssignments UserProjectAssignment[]
+  assignedTasks      Task[]                  @relation("Assignee")
+  createdTasks       Task[]                  @relation("Creator")
+  memories           AiMemory[]
+}
+
+enum Role {
+  SUPERADMIN // Stevens — ve todo
+  COLLABORATOR // Colaboradores — ven solo asignado
+}
+
+enum AssistantKind {
+  COSMO
+  WANDA
+  // TIMMY no es opción aquí — solo Stevens accede directamente
+}
+
+// Asignación proyecto-usuario (Stevens ve todos, colaboradores solo los suyos)
+model UserProjectAssignment {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      String  @default("viewer") // viewer, manager, admin
+
+  @@unique([userId, projectId])
+}
+
+// ============================================================
+// PROYECTOS Y MÉTRICAS VERIFICADAS
+// ============================================================
+
+model Project {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  name            String
+  slug            String        @unique
+  url             String? // URL de producción
+  domain          String?
+  hosting         String?
+  repoUrl         String?
+  status          ProjectStatus @default(ACTIVE)
+  metricsEndpoint String? // https://proyecto.com/api/metrics
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  assignments UserProjectAssignment[]
+  metrics     Metric[]
+  tasks       Task[]
+  events      TimelineEvent[]
+  memories    AiMemory[]
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+// CADA métrica TIENE verified_at — lección de v1
+model Metric {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key        String // "products_active"
+  value      Float
+  label      String? // "Productos activos"
+  format     String? // "number", "currency", "percentage"
+  source     String // "rest_api:https://imeldishop.com/api/metrics"
+  verifiedAt DateTime // ¡Timestamp de verificación REAL!
+  isStale    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([projectId, key])
+  @@index([verifiedAt])
+}
+
+// ============================================================
+// TAREAS (modeladas desde Fase 0 para evitar retrofits)
+// ============================================================
+
+model Task {
+  id            String        @id @default(cuid())
+  projectId     String?
+  project       Project?      @relation(fields: [projectId], references: [id])
+  assigneeId    String?
+  assignee      User?         @relation("Assignee", fields: [assigneeId], references: [id])
+  createdById   String
+  createdBy     User          @relation("Creator", fields: [createdById], references: [id])
+  title         String
+  description   String?       @db.Text
+  status        TaskStatus    @default(BACKLOG)
+  priority      Priority      @default(MEDIUM)
+  approvalLevel ApprovalLevel @default(GREEN)
+  deadline      DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ApprovalLevel {
+  GREEN
+  YELLOW
+  RED
+}
+
+// ============================================================
+// IA: AGENTES, MEMORIA Y AUDITORÍA
+// ============================================================
+
+model Agent {
+  id           String        @id @default(cuid())
+  kind         AssistantKind @unique
+  displayName  String
+  emoji        String        @default("🤖")
+  systemPrompt String        @db.Text // Personalidad editable SIN deploy
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// Memoria compartida Timmy ↔ Cosmo ↔ Wanda
+model AiMemory {
+  id        String        @id @default(cuid())
+  scope     MemoryScope
+  userId    String?
+  user      User?         @relation(fields: [userId], references: [id])
+  projectId String?
+  project   Project?      @relation(fields: [projectId], references: [id])
+  key       String
+  content   String        @db.Text
+  createdBy AssistantKind
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([key, scope, userId, projectId])
+  @@index([scope, userId])
+}
+
+enum MemoryScope {
+  GLOBAL
+  USER
+  PROJECT
+}
+
+// ============================================================
+// TIMELINE (eventos del ecosistema — escribir desde Fase 1)
+// ============================================================
+
+model TimelineEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  type           String // deploy, health_check, metric_sync, task_created, task_done, agent_online, ai_action
+  actorType      String // user, agent, cron, system
+  actorId        String?
+  projectId      String?
+  project        Project? @relation(fields: [projectId], references: [id])
+  title          String
+  body           String?  @db.Text
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([type, createdAt])
+}
+
+// Auditoría de TODAS las acciones (especialmente las de IA)
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actorKind String // "user" | "agent:cosmo" | "agent:wanda"
+  action    String // "task.create", "metric.query", "project.update"
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([actorKind, createdAt])
+}

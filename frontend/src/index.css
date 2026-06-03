@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+/* Paleta Matrix — tokens de tema Tailwind v4 */
+@theme {
+  --color-matrix-primary: #0f172a;
+  --color-matrix-secondary: #1e293b;
+  --color-matrix-accent: #0ea5e9;
+  --color-matrix-success: #16a34a;
+  --color-matrix-warning: #f59e0b;
+  --color-matrix-danger: #dc2626;
+  --color-matrix-text: #f8fafc;
+  --color-matrix-muted: #94a3b8;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+}
