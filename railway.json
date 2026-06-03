@@ -4,7 +4,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && npx prisma generate && npx prisma migrate deploy && npx tsx src/index.ts",
+    "rootDirectory": "backend",
+    "startCommand": "npx prisma generate && npx prisma migrate deploy && npx tsx src/index.ts",
     "restartPolicyType": "ON_FAILURE"
   }
 }
