@@ -36,7 +36,9 @@ const hasBuild = fs.existsSync(path.join(frontendPath, 'index.html'));
 
 if (hasBuild) {
   app.use(express.static(frontendPath));
-  app.get(/^(?!\/api).*/, (_req, res) => {
+  // SPA fallback: serve index.html for non-API routes
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 } else {
