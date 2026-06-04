@@ -65,6 +65,8 @@ git push                       # Railway despliega backend + sirve dist/
 | `SUPABASE_URL` | https://rkwbixidpaqweavghfea.supabase.co |
 | `SUPABASE_ANON_KEY` | `eyJhbG...` |
 | `SUPABASE_SERVICE_KEY` | `eyJhbG...` |
+| `CRON_SECRET` | secret para `POST /api/metrics/sync` |
+| `AGENT_SECRET` | secret para heartbeats de agentes |
 
 ---
 
@@ -77,12 +79,45 @@ git push                       # Railway despliega backend + sirve dist/
 
 ---
 
-## API (Fase 0)
+## API
 
+### Fase 0
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/api/health` | Health check + estado BD |
+| GET | `/api/health/sync` | Estado del último sync de métricas |
 | GET | `/api/auth/me` | Usuario autenticado (401 si no) |
+
+### Fase 1 — Proyectos
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/api/projects` | Auth (scoped: Stevens todos, colab. asignados) |
+| GET | `/api/projects/:slug` | Auth + scope |
+| GET | `/api/projects/:slug/metrics` | Auth + scope |
+| POST | `/api/projects` | SUPERADMIN |
+| PUT | `/api/projects/:id` | SUPERADMIN |
+| DELETE | `/api/projects/:id` | SUPERADMIN (soft-delete) |
+
+### Fase 1 — Métricas y agentes
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/api/metrics` | Auth + scope (agrupadas por proyecto) |
+| POST | `/api/metrics/sync` | `x-cron-secret: $CRON_SECRET` **o** SUPERADMIN |
+| GET | `/api/agents` | Auth |
+| POST | `/api/agents/:id/heartbeat` | `x-agent-secret: $AGENT_SECRET` |
+
+### Métricas verificadas (lección de v1)
+- Toda métrica tiene `verifiedAt` + `source`. Badge ✅ <6h, 🟡 6–48h, ⚠️ STALE >48h.
+- El sync consume el `/api/metrics` HTTP de cada proyecto (nunca su BD).
+- Cada sync escribe un `TimelineEvent` (éxito y fallo); si falla, marca las métricas como stale.
+- Formato esperado del endpoint remoto:
+  `{ "ts": "ISO8601", "metrics": { "products_active": { "value": 299, "label": "Productos activos", "format": "number" } } }`
+
+### Cron de sincronización (Railway)
+Crea un **Railway Cron** (cada 6h, `0 */6 * * *`) que dispare:
+```bash
+curl -X POST https://<tu-app>/api/metrics/sync -H "x-cron-secret: $CRON_SECRET"
+```
 
 ---
 

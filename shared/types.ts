@@ -22,3 +22,62 @@ export interface CurrentUser {
 export interface ApiError {
   error: string;
 }
+
+export interface Metric {
+  id: string;
+  projectId: string;
+  key: string;
+  value: number;
+  label: string | null;
+  format: string | null;
+  source: string;
+  verifiedAt: string;
+  isStale: boolean;
+  createdAt: string;
+}
+
+export interface Project {
+  id: string;
+  organizationId: string;
+  name: string;
+  slug: string;
+  url: string | null;
+  domain: string | null;
+  hosting: string | null;
+  repoUrl: string | null;
+  status: ProjectStatus;
+  metricsEndpoint: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectWithMetrics {
+  id: string;
+  name: string;
+  slug: string;
+  url: string | null;
+  status: ProjectStatus;
+  hasMetricsEndpoint: boolean;
+  metrics: Metric[];
+}
+
+export interface TimelineEvent {
+  id: string;
+  type: string;
+  actorType: string;
+  actorId: string | null;
+  projectId: string | null;
+  title: string;
+  body: string | null;
+  createdAt: string;
+}
+
+export interface AgentStatus {
+  id: string;
+  kind: AssistantKind;
+  displayName: string;
+  emoji: string;
+  isActive: boolean;
+  lastHeartbeat: string | null;
+  online: boolean;
+}

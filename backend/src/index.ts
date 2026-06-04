@@ -4,6 +4,9 @@ import fs from 'fs';
 import cors from 'cors';
 import { authRoutes } from './routes/auth';
 import { healthRoutes } from './routes/health';
+import { projectRoutes } from './routes/projects';
+import { metricRoutes } from './routes/metrics';
+import { agentRoutes } from './routes/agents';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -16,6 +19,11 @@ app.use('/api/health', healthRoutes);
 
 // Auth — sesión actual
 app.use('/api/auth', authRoutes);
+
+// Core Fase 1
+app.use('/api/projects', projectRoutes);
+app.use('/api/metrics', metricRoutes);
+app.use('/api/agents', agentRoutes);
 
 // 404 para /api/* no encontrado
 app.use('/api', (_req, res) => {

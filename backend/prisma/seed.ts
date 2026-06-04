@@ -137,6 +137,68 @@ async function main() {
     console.log(`✅ Proyecto: ${p.name}`);
   }
 
+  // === MÉTRICAS MOCK (solo dev) ===
+  // Imeldi Shop: frescas (verificadas ahora). OmniDrive: stale (>48h).
+  const now = new Date();
+  const threeDaysAgo = new Date(Date.now() - 72 * 3600000);
+
+  const mockMetrics: {
+    slug: string;
+    verifiedAt: Date;
+    isStale: boolean;
+    metrics: { key: string; value: number; label: string; format: string }[];
+  }[] = [
+    {
+      slug: 'imeldi-shop',
+      verifiedAt: now,
+      isStale: false,
+      metrics: [
+        { key: 'products_active', value: 299, label: 'Productos activos', format: 'number' },
+        { key: 'products_total', value: 339, label: 'Total', format: 'number' },
+        { key: 'avg_price', value: 9.42, label: 'Precio promedio', format: 'currency' },
+        { key: 'stock', value: 318, label: 'Stock', format: 'number' },
+      ],
+    },
+    {
+      slug: 'omnidrive',
+      verifiedAt: threeDaysAgo,
+      isStale: true,
+      metrics: [
+        { key: 'vehicles', value: 6, label: 'Vehículos', format: 'number' },
+        { key: 'users', value: 5, label: 'Usuarios', format: 'number' },
+        { key: 'reservations', value: 0, label: 'Reservas', format: 'number' },
+      ],
+    },
+  ];
+
+  for (const group of mockMetrics) {
+    const project = await prisma.project.findUnique({ where: { slug: group.slug } });
+    if (!project) continue;
+    for (const m of group.metrics) {
+      await prisma.metric.upsert({
+        where: { projectId_key: { projectId: project.id, key: m.key } },
+        update: {
+          value: m.value,
+          label: m.label,
+          format: m.format,
+          verifiedAt: group.verifiedAt,
+          isStale: group.isStale,
+        },
+        create: {
+          projectId: project.id,
+          key: m.key,
+          value: m.value,
+          label: m.label,
+          format: m.format,
+          source: 'seed:mock',
+          verifiedAt: group.verifiedAt,
+          isStale: group.isStale,
+        },
+      });
+    }
+    console.log(`✅ Métricas mock: ${group.slug} (${group.metrics.length})`);
+  }
+
   console.log('🎉 Seed completado: 1 organización, 2 agentes, 6 proyectos.');
   console.log('ℹ️  NO se crearon usuarios — Stevens se autoprovisiona al primer login.');
 }

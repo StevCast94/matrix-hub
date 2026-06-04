@@ -175,6 +175,7 @@ model Agent {
   emoji        String        @default("🤖")
   systemPrompt String        @db.Text // Personalidad editable SIN deploy
   isActive     Boolean       @default(true)
+  lastHeartbeat DateTime?    // Última señal de vida (liveness/TTL)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
