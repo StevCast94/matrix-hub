@@ -106,6 +106,24 @@ git push                       # Railway despliega backend + sirve dist/
 | GET | `/api/agents` | Auth |
 | POST | `/api/agents/:id/heartbeat` | `x-agent-secret: $AGENT_SECRET` |
 
+### Fase 2 — Tareas, Timeline y Notificaciones
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/api/tasks` | Auth + scope (`?status&projectId&assigneeId&priority&search`) |
+| GET | `/api/tasks/:id` | Auth + scope |
+| POST | `/api/tasks` | Auth |
+| PUT | `/api/tasks/:id` | Auth + scope |
+| PATCH | `/api/tasks/:id/status` | Auth + approval gates (YELLOW→nota, RED→SUPERADMIN) |
+| PATCH | `/api/tasks/:id/assign` | Auth + scope |
+| DELETE | `/api/tasks/:id` | SUPERADMIN o creador |
+| GET | `/api/timeline` | Auth + scope (`?type&projectId&since&until&limit&offset`) |
+| GET | `/api/notifications` | Auth (pendientes del usuario) |
+| GET | `/api/notifications/count` | Auth |
+
+**Frontend Fase 2:** Kanban con drag & drop HTML5 nativo (optimistic update + rollback), detalle de tarea con historial, Mis Tareas, Aprobaciones, Timeline agrupado por día, NotificationBell. Toda acción de tarea escribe un `TimelineEvent` (`task_created`, `task_status_change`, `task_done`, `task_assigned`).
+
+> **Build del frontend:** Vite ahora emite directamente a `backend/public/` (servido por Express). Ejecuta `cd frontend && npm run build`, commitea `backend/public/` y push.
+
 ### Métricas verificadas (lección de v1)
 - Toda métrica tiene `verifiedAt` + `source`. Badge ✅ <6h, 🟡 6–48h, ⚠️ STALE >48h.
 - El sync consume el `/api/metrics` HTTP de cada proyecto (nunca su BD).

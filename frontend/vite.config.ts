@@ -16,7 +16,8 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    // Railway sirve el frontend desde backend/public (Express estático).
+    outDir: resolve(__dirname, '../backend/public'),
     emptyOutDir: true,
   },
 });

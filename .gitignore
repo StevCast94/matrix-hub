@@ -7,9 +7,10 @@ node_modules/
 # Prisma
 backend/prisma/*.db
 
-# Build outputs — NOTA: frontend/dist SÍ se commitea (Railway no reconstruye)
+# Build outputs — NOTA: backend/public SÍ se commitea (Railway no reconstruye el frontend)
 backend/dist/
 
 # Editor
 .vscode/
 .idea/
+frontend/dist/

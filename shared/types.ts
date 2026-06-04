@@ -72,6 +72,32 @@ export interface TimelineEvent {
   createdAt: string;
 }
 
+export interface TaskRef {
+  id: string;
+  name: string;
+  slug?: string;
+  avatarUrl?: string | null;
+}
+
+export interface Task {
+  id: string;
+  projectId: string | null;
+  assigneeId: string | null;
+  createdById: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: Priority;
+  approvalLevel: ApprovalLevel;
+  deadline: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  project?: { id: string; name: string; slug: string } | null;
+  assignee?: { id: string; name: string; avatarUrl: string | null } | null;
+  createdBy?: { id: string; name: string } | null;
+}
+
 export interface AgentStatus {
   id: string;
   kind: AssistantKind;

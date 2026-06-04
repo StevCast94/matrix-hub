@@ -7,6 +7,9 @@ import { healthRoutes } from './routes/health';
 import { projectRoutes } from './routes/projects';
 import { metricRoutes } from './routes/metrics';
 import { agentRoutes } from './routes/agents';
+import { taskRoutes } from './routes/tasks';
+import { timelineRoutes } from './routes/timeline';
+import { notificationRoutes } from './routes/notifications';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -24,6 +27,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/metrics', metricRoutes);
 app.use('/api/agents', agentRoutes);
+
+// Core Fase 2
+app.use('/api/tasks', taskRoutes);
+app.use('/api/timeline', timelineRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 para /api/* no encontrado
 app.use('/api', (_req, res) => {

@@ -9,6 +9,11 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('@/pages/ProjectDetailPage'));
 const AgentsPage = lazy(() => import('@/pages/AgentsPage'));
+const KanbanPage = lazy(() => import('@/pages/KanbanPage'));
+const TaskDetailPage = lazy(() => import('@/pages/TaskDetailPage'));
+const MyTasksPage = lazy(() => import('@/pages/MyTasksPage'));
+const ApprovalsPage = lazy(() => import('@/pages/ApprovalsPage'));
+const TimelinePage = lazy(() => import('@/pages/TimelinePage'));
 
 function Fallback() {
   return (
@@ -43,6 +48,11 @@ export default function App() {
               <Route path="proyectos" element={<ProjectsPage />} />
               <Route path="proyectos/:slug" element={<ProjectDetailPage />} />
               <Route path="agentes" element={<AgentsPage />} />
+              <Route path="tareas" element={<KanbanPage />} />
+              <Route path="tareas/:id" element={<TaskDetailPage />} />
+              <Route path="mis-tareas" element={<MyTasksPage />} />
+              <Route path="aprobaciones" element={<ApprovalsPage />} />
+              <Route path="timeline" element={<TimelinePage />} />
               <Route path="admin" element={<ProjectsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

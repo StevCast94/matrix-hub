@@ -22,6 +22,26 @@ export async function getVisibleProjectIds(userId: string, role: Role): Promise<
   return assignments.map((a) => a.projectId);
 }
 
+/**
+ * IDs de tareas visibles para un usuario.
+ * SUPERADMIN → devuelve [] (sin filtro: ve todas).
+ * Colaboradores → tareas asignadas a él + tareas de sus proyectos visibles.
+ */
+export async function getVisibleTaskIds(userId: string, role: Role): Promise<string[]> {
+  if (role === 'SUPERADMIN') return [];
+
+  const projectIds = await getVisibleProjectIds(userId, role);
+
+  const tasks = await prisma.task.findMany({
+    where: {
+      OR: [{ assigneeId: userId }, { projectId: { in: projectIds } }],
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  return tasks.map((t) => t.id);
+}
+
 /** True si el usuario puede ver el proyecto indicado. */
 export async function canSeeProject(
   userId: string,

@@ -1,5 +1,6 @@
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 function initials(name: string): string {
   return name
@@ -24,9 +25,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
       </button>
 
       <div className="ml-auto flex items-center gap-3">
-        <button className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Notificaciones">
-          🔔
-        </button>
+        <NotificationBell />
         {user && (
           <div className="flex items-center gap-2">
             {user.avatarUrl ? (

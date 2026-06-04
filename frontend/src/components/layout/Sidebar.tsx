@@ -14,9 +14,11 @@ interface NavItem {
 const items: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: '📊', end: true },
   { to: '/proyectos', label: 'Proyectos', icon: '📁' },
-  { to: '/tareas', label: 'Tareas', icon: '✅', disabled: true },
+  { to: '/tareas', label: 'Tareas', icon: '✅' },
+  { to: '/mis-tareas', label: 'Mis tareas', icon: '🙋' },
+  { to: '/aprobaciones', label: 'Aprobaciones', icon: '🔐' },
   { to: '/agentes', label: 'Agentes', icon: '🤖' },
-  { to: '/timeline', label: 'Timeline', icon: '📜', disabled: true },
+  { to: '/timeline', label: 'Timeline', icon: '📜' },
   { to: '/admin', label: 'Admin', icon: '⚙️', adminOnly: true },
 ];
 
