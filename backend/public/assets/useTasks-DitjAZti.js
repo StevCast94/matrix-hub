@@ -1,1 +1,0 @@
-import{a as n}from"./index-ejzihMaO.js";function o(t){const s=new URLSearchParams;Object.entries(t).forEach(([a,e])=>{e&&s.set(a,e)});const r=s.toString();return r?`?${r}`:""}function u(t={}){return n(`/tasks${o(t)}`)}export{u};

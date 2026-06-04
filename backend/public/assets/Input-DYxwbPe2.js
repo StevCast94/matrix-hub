@@ -1,0 +1,1 @@
+import{j as r,c as o}from"./index-_geNjw45.js";function n({className:t,...e}){return r.jsx("input",{className:o("w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-matrix-accent focus:ring-2 focus:ring-sky-200",t),...e})}export{n as I};
