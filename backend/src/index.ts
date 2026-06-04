@@ -31,7 +31,7 @@ app.use('/api', (_req, res) => {
 });
 
 // Servir frontend estático
-const frontendPath = path.join(__dirname, '../../frontend/dist');
+const frontendPath = path.join(__dirname, '../public');
 const hasBuild = fs.existsSync(path.join(frontendPath, 'index.html'));
 
 if (hasBuild) {
