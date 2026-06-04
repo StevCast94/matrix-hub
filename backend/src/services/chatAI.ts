@@ -62,8 +62,11 @@ async function* streamDeepSeek(
   messages: ChatMessage[],
   tools: ReturnType<typeof toOpenAITools>,
 ): AsyncGenerator<{ contentDelta?: string; toolCallDeltas?: any[]; finishReason?: string }> {
-  const apiKey = 'sk-202b9a57542f40a185010d8be360ec27';
-  if (!apiKey) throw new Error('DEEPSEEK_API_KEY no configurada');
+  const apiKey = process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    console.error('[chatAI] DEEPSEEK_API_KEY no configurada — añádela en Railway env vars');
+    throw new Error('DEEPSEEK_API_KEY no configurada');
+  }
 
   const res = await fetch(DEEPSEEK_URL, {
     method: 'POST',
