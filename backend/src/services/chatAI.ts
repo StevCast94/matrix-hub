@@ -62,7 +62,7 @@ async function* streamDeepSeek(
   messages: ChatMessage[],
   tools: ReturnType<typeof toOpenAITools>,
 ): AsyncGenerator<{ contentDelta?: string; toolCallDeltas?: any[]; finishReason?: string }> {
-  const apiKey = process.env.DEEPSEEK_API_KEY;
+  const apiKey = 'sk-202b9a57542f40a185010d8be360ec27';
   if (!apiKey) throw new Error('DEEPSEEK_API_KEY no configurada');
 
   const res = await fetch(DEEPSEEK_URL, {
@@ -125,30 +125,7 @@ function mergeToolCalls(acc: ToolCall[], deltas: any[]) {
   }
 }
 
-// --- Fallback: Google Gemini (no streaming, sin function calling) ---
-async function callGoogleFallback(messages: ChatMessage[]): Promise<string> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) throw new Error('GOOGLE_AI_API_KEY no configurada');
-
-  const system = messages.find((m) => m.role === 'system')?.content ?? '';
-  const convo = messages
-    .filter((m) => m.role === 'user' || m.role === 'assistant')
-    .map((m) => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content ?? ''}`)
-    .join('\n');
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: `${system}\n\n${convo}` }] }],
-    }),
-    signal: AbortSignal.timeout(30000),
-  });
-  if (!res.ok) throw new Error(`Google AI HTTP ${res.status}`);
-  const json = (await res.json()) as any;
-  return json.candidates?.[0]?.content?.parts?.[0]?.text ?? 'No pude generar una respuesta.';
-}
+// Fallback eliminado — solo DeepSeek
 
 async function logAction(userId: string, kind: AssistantKind, fnName: string, args: unknown) {
   try {
@@ -229,7 +206,7 @@ export async function* handleChatSend(
       } catch (deepseekErr) {
         // Fallback a Google AI (sin function calling).
         console.error('[chatAI] DeepSeek falló, usando fallback Google:', deepseekErr);
-        const text = await callGoogleFallback(messages);
+        const text = 'Lo siento, no pude completar esa acción. Intenta de nuevo más tarde.';
         yield { type: 'token', data: text };
         messages.push({ role: 'assistant', content: text });
         yield { type: 'done', data: { conversationId: convId, usage: { tokens: 0 } } };
