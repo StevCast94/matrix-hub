@@ -14,6 +14,7 @@ const TaskDetailPage = lazy(() => import('@/pages/TaskDetailPage'));
 const MyTasksPage = lazy(() => import('@/pages/MyTasksPage'));
 const ApprovalsPage = lazy(() => import('@/pages/ApprovalsPage'));
 const TimelinePage = lazy(() => import('@/pages/TimelinePage'));
+const ChatPage = lazy(() => import('@/pages/ChatPage'));
 
 function Fallback() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="proyectos" element={<ProjectsPage />} />
               <Route path="proyectos/:slug" element={<ProjectDetailPage />} />
               <Route path="agentes" element={<AgentsPage />} />
+              <Route path="chat" element={<ChatPage />} />
               <Route path="tareas" element={<KanbanPage />} />
               <Route path="tareas/:id" element={<TaskDetailPage />} />
               <Route path="mis-tareas" element={<MyTasksPage />} />

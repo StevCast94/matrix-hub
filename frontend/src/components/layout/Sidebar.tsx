@@ -18,6 +18,7 @@ const items: NavItem[] = [
   { to: '/mis-tareas', label: 'Mis tareas', icon: '🙋' },
   { to: '/aprobaciones', label: 'Aprobaciones', icon: '🔐' },
   { to: '/agentes', label: 'Agentes', icon: '🤖' },
+  { to: '/chat', label: 'Chat', icon: '💬' },
   { to: '/timeline', label: 'Timeline', icon: '📜' },
   { to: '/admin', label: 'Admin', icon: '⚙️', adminOnly: true },
 ];

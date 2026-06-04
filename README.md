@@ -122,6 +122,18 @@ git push                       # Railway despliega backend + sirve dist/
 
 **Frontend Fase 2:** Kanban con drag & drop HTML5 nativo (optimistic update + rollback), detalle de tarea con historial, Mis Tareas, Aprobaciones, Timeline agrupado por día, NotificationBell. Toda acción de tarea escribe un `TimelineEvent` (`task_created`, `task_status_change`, `task_done`, `task_assigned`).
 
+### Fase 3 — Chat IA (Cosmo & Wanda)
+| Método | Ruta | Acceso |
+|---|---|---|
+| POST | `/api/chat/send` | Auth + rate limit; responde **SSE** (`token`/`function`/`done`/`error`) |
+
+- **1 motor, 2 personalidades:** mismo proxy, system prompt leído de la tabla `Agent`.
+- **DeepSeek** (OpenAI-compatible, function calling + streaming) primario; **Google Gemini** fallback (sin tools) si DeepSeek falla.
+- **7 funciones IA** ejecutadas con el **JWT del usuario** contra los endpoints reales (sin acceso directo a BD): `getMetrics, getTasks, createTask, updateTaskStatus, getProjects, getMyTasks, getAgents`.
+- Cada acción se registra en **AuditLog** (`actorKind: agent:cosmo|agent:wanda`).
+- **Rate limit** 10 req/min por usuario (en memoria). Conversaciones en memoria (no persistidas).
+- Variables Railway: `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `GOOGLE_AI_API_KEY`, `INTERNAL_API_URL` (vacío → `http://localhost:$PORT`), `RATE_LIMIT_PER_MINUTE`.
+
 > **Build del frontend:** Vite ahora emite directamente a `backend/public/` (servido por Express). Ejecuta `cd frontend && npm run build`, commitea `backend/public/` y push.
 
 ### Métricas verificadas (lección de v1)

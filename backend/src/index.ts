@@ -10,6 +10,7 @@ import { agentRoutes } from './routes/agents';
 import { taskRoutes } from './routes/tasks';
 import { timelineRoutes } from './routes/timeline';
 import { notificationRoutes } from './routes/notifications';
+import { chatRoutes } from './routes/chat';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -32,6 +33,9 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/timeline', timelineRoutes);
 app.use('/api/notifications', notificationRoutes);
+
+// Core Fase 3 — Chat IA
+app.use('/api/chat', chatRoutes);
 
 // 404 para /api/* no encontrado
 app.use('/api', (_req, res) => {

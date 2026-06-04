@@ -1,0 +1,1 @@
+import{j as t,s as n,c as r}from"./index-DpxQ1sx9.js";function o({status:e}){const s=n[e];return t.jsx("span",{className:r("inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",s.bg,s.border),children:s.label})}export{o as T};
