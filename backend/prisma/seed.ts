@@ -88,10 +88,10 @@ const projects: {
   {
     name: 'Red Dental',
     slug: 'red-dental',
-    url: null,
+    url: 'https://red-dental-production.up.railway.app',
     hosting: 'Railway Pro',
     repoUrl: 'https://github.com/StevCast94/red-dental',
-    metricsEndpoint: null,
+    metricsEndpoint: 'https://red-dental-production.up.railway.app/api/metrics',
     status: 'ACTIVE',
   },
   {
@@ -109,7 +109,7 @@ const projects: {
     url: 'https://ayni-green-school-production.up.railway.app',
     hosting: 'Railway Pro (proyecto separado)',
     repoUrl: null,
-    metricsEndpoint: null,
+    metricsEndpoint: 'https://ayni-green-school-production.up.railway.app/api/metrics',
     status: 'ACTIVE',
   },
 ];
