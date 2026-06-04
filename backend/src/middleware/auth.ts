@@ -2,8 +2,8 @@ import type { NextFunction, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { supabaseAdmin } from '../lib/supabase';
 
-// Email de Stevens — al primer login se autoasigna SUPERADMIN.
-const SUPERADMIN_EMAIL = 'grupo_audiovisual_cs@hotmail.com';
+// Emails de Stevens — al primer login se autoasigna SUPERADMIN.
+const SUPERADMIN_EMAILS = ['grupo_audiovisual_cs@hotmail.com', 'stevens@matrix.local'];
 const DEFAULT_ORG_SLUG = 'stevens-tech';
 
 export interface AuthedUser {
@@ -72,7 +72,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
           email,
           name,
           avatarUrl,
-          role: email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase() ? 'SUPERADMIN' : 'COLLABORATOR',
+          role: SUPERADMIN_EMAILS.includes(email.toLowerCase()) ? 'SUPERADMIN' : 'COLLABORATOR',
         },
       });
     }
