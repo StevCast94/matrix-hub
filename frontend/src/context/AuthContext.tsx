@@ -1,75 +1,59 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api';
+import { getToken, setToken, clearToken } from '@/lib/token';
 import type { CurrentUser } from '../../../shared/types';
 
 interface AuthContextValue {
-  session: Session | null;
   user: CurrentUser | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  isAuthenticated: boolean;
   signInWithPassword: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Carga el perfil del backend (/api/auth/me) cuando hay sesión.
-  async function loadProfile(s: Session | null) {
-    if (!s) {
-      setUser(null);
-      return;
-    }
-    try {
-      const { user: profile } = await api<{ user: CurrentUser }>('/auth/me');
-      setUser(profile);
-    } catch {
-      setUser(null);
-    }
-  }
-
+  // Al montar: si hay token guardado, intenta cargar el perfil.
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      await loadProfile(data.session);
-      setLoading(false);
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
-      setSession(s);
-      await loadProfile(s);
-    });
-
-    return () => sub.subscription.unsubscribe();
+    async function bootstrap() {
+      if (!getToken()) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { user: profile } = await api<{ user: CurrentUser }>('/auth/me');
+        setUser(profile);
+      } catch {
+        clearToken();
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void bootstrap();
   }, []);
 
-  async function signInWithGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) throw error;
-  }
-
   async function signInWithPassword(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    const res = await api<{ token: string; user: CurrentUser }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    setToken(res.token);
+    setUser(res.user);
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
+  function signOut() {
+    clearToken();
     setUser(null);
   }
 
   return (
     <AuthContext.Provider
-      value={{ session, user, loading, signInWithGoogle, signInWithPassword, signOut }}
+      value={{ user, loading, isAuthenticated: !!user, signInWithPassword, signOut }}
     >
       {children}
     </AuthContext.Provider>

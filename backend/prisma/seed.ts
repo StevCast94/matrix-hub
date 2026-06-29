@@ -1,4 +1,5 @@
 import { PrismaClient, type AssistantKind, type ProjectStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -124,6 +125,28 @@ async function main() {
     create: { id: ORG_ID, name: 'Stevens Tech', slug: ORG_SLUG },
   });
   console.log(`✅ Organización: ${org.name}`);
+
+  // === USUARIO SUPERADMIN (auth email+password propia) ===
+  // Credenciales vienen de env (Railway), NUNCA hardcodeadas. Si faltan, se omite.
+  const adminEmail = process.env.SEED_ADMIN_EMAIL?.toLowerCase().trim();
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (adminEmail && adminPassword) {
+    const passwordHash = await bcrypt.hash(adminPassword, 10);
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { passwordHash, role: 'SUPERADMIN', deletedAt: null },
+      create: {
+        organizationId: org.id,
+        email: adminEmail,
+        name: process.env.SEED_ADMIN_NAME ?? 'Stevens',
+        passwordHash,
+        role: 'SUPERADMIN',
+      },
+    });
+    console.log(`✅ SUPERADMIN: ${adminEmail}`);
+  } else {
+    console.warn('⚠️ SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD no seteados — no se creó usuario admin.');
+  }
 
   // === AGENTES IA ===
   for (const a of agents) {

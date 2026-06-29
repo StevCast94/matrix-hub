@@ -25,9 +25,9 @@ function Fallback() {
 }
 
 function RequireAuth({ children }: { children: ReactNode }) {
-  const { session, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   if (loading) return <Fallback />;
-  if (!session) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 

@@ -24,10 +24,11 @@ model Organization {
 }
 
 model User {
-  id             String        @id // = Supabase auth.users.id (UUID de Supabase)
+  id             String        @id @default(cuid()) // auth propia (self-hosted, ya no Supabase)
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id])
   email          String        @unique
+  passwordHash   String? // bcrypt — auth email+password propia
   name           String
   avatarUrl      String?
   role           Role          @default(COLLABORATOR)
@@ -52,7 +53,7 @@ enum Role {
 enum AssistantKind {
   COSMO
   WANDA
-  // TIMMY no es opción aquí — solo Stevens accede directamente
+  TIMMY // agente externo (OpenClaw): escribe AiMemory/TimelineEvent vía /api/ingest. No es opción de User.aiAssistant.
 }
 
 // Asignación proyecto-usuario (Stevens ve todos, colaboradores solo los suyos)

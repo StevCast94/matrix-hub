@@ -1,17 +1,14 @@
-import { supabase } from './supabase';
+import { getToken } from './token';
 
 /**
- * Wrapper de fetch que adjunta el JWT de Supabase y apunta a /api.
+ * Wrapper de fetch que adjunta el JWT propio (auth self-hosted) y apunta a /api.
  */
 export async function api<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
-  if (session?.access_token) {
-    headers.set('Authorization', `Bearer ${session.access_token}`);
+  const token = getToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   const res = await fetch(`/api${path}`, { ...init, headers });

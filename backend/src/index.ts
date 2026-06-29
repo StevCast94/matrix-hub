@@ -11,6 +11,7 @@ import { taskRoutes } from './routes/tasks';
 import { timelineRoutes } from './routes/timeline';
 import { notificationRoutes } from './routes/notifications';
 import { chatRoutes } from './routes/chat';
+import { ingestRoutes } from './routes/ingest';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -36,6 +37,9 @@ app.use('/api/notifications', notificationRoutes);
 
 // Core Fase 3 — Chat IA
 app.use('/api/chat', chatRoutes);
+
+// Ingesta de agentes externos (Timmy/OpenClaw, spokes) — auth por x-agent-secret
+app.use('/api/ingest', ingestRoutes);
 
 // 404 para /api/* no encontrado
 app.use('/api', (_req, res) => {

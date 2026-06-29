@@ -4,7 +4,7 @@ import { Button, Card, Input } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
-  const { signInWithGoogle, signInWithPassword, session } = useAuth();
+  const { signInWithPassword, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,16 +23,7 @@ export default function LoginPage() {
     }
   }
 
-  async function handleGoogle() {
-    setError(null);
-    try {
-      await signInWithGoogle();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión con Google');
-    }
-  }
-
-  if (session) return <Navigate to="/" replace />;
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-matrix-primary px-4">
@@ -43,16 +34,6 @@ export default function LoginPage() {
           </div>
           <h1 className="text-xl font-semibold text-slate-900">Matrix Hub</h1>
           <p className="text-sm text-slate-500">Sistema nervioso del ecosistema</p>
-        </div>
-
-        <Button className="w-full" variant="secondary" onClick={() => void handleGoogle()}>
-          Iniciar sesión con Google
-        </Button>
-
-        <div className="my-4 flex items-center gap-3">
-          <span className="h-px flex-1 bg-slate-200" />
-          <span className="text-xs text-slate-400">o</span>
-          <span className="h-px flex-1 bg-slate-200" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">

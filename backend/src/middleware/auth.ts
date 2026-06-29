@@ -1,10 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { supabaseAdmin } from '../lib/supabase';
-
-// Emails de Stevens — al primer login se autoasigna SUPERADMIN.
-const SUPERADMIN_EMAILS = ['grupo_audiovisual_cs@hotmail.com', 'stevens@matrix.local'];
-const DEFAULT_ORG_SLUG = 'stevens-tech';
+import { verifyToken } from '../lib/auth';
 
 export interface AuthedUser {
   id: string;
@@ -27,9 +23,8 @@ declare global {
 }
 
 /**
- * Verifica el JWT de Supabase en el header Authorization: Bearer <token>.
- * Si el usuario no existe aún en nuestra BD, lo crea (provisioning).
- * Stevens (SUPERADMIN_EMAIL) se crea con role SUPERADMIN.
+ * Verifica el JWT propio (firmado por el backend) en Authorization: Bearer <token>.
+ * Auth self-hosted email+password — ya no depende de Supabase.
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
@@ -40,43 +35,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return res.status(401).json({ error: 'No autenticado' });
     }
 
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !data.user) {
+    const payload = verifyToken(token);
+    if (!payload) {
       return res.status(401).json({ error: 'Token inválido' });
     }
 
-    const supaUser = data.user;
-    const email = supaUser.email ?? '';
-
-    // Buscar usuario en nuestra BD; crear si no existe.
-    let user = await prisma.user.findUnique({ where: { id: supaUser.id } });
-
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) {
-      const org = await prisma.organization.findUnique({ where: { slug: DEFAULT_ORG_SLUG } });
-      if (!org) {
-        return res.status(500).json({ error: 'Organización default no encontrada. Ejecuta el seed.' });
-      }
-
-      const meta = (supaUser.user_metadata ?? {}) as Record<string, unknown>;
-      const name =
-        (meta.full_name as string) ||
-        (meta.name as string) ||
-        email.split('@')[0] ||
-        'Usuario';
-      const avatarUrl = (meta.avatar_url as string) ?? (meta.picture as string) ?? null;
-
-      user = await prisma.user.create({
-        data: {
-          id: supaUser.id,
-          organizationId: org.id,
-          email,
-          name,
-          avatarUrl,
-          role: SUPERADMIN_EMAILS.includes(email.toLowerCase()) ? 'SUPERADMIN' : 'COLLABORATOR',
-        },
-      });
+      return res.status(401).json({ error: 'Usuario no encontrado' });
     }
-
     if (user.deletedAt) {
       return res.status(403).json({ error: 'Usuario deshabilitado' });
     }
@@ -88,7 +55,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       name: user.name,
       avatarUrl: user.avatarUrl,
       role: user.role,
-      aiAssistant: user.aiAssistant,
+      aiAssistant: user.aiAssistant as 'COSMO' | 'WANDA',
       theme: user.theme,
     };
 

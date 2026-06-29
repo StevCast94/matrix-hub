@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { getToken } from './token';
 
 export interface SSEMessage {
   type: 'token' | 'function' | 'done' | 'error';
@@ -12,21 +12,19 @@ export interface SSEHandle {
 
 /**
  * POST + lectura de stream SSE (EventSource nativo solo soporta GET).
- * Adjunta el JWT de Supabase automáticamente.
+ * Adjunta el JWT propio (auth self-hosted) automáticamente.
  */
 export function createSSEStream(path: string, body: unknown): SSEHandle {
   const controller = new AbortController();
 
   async function* stream(): AsyncGenerator<SSEMessage> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const token = getToken();
 
     const res = await fetch(`/api${path}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(body),
       signal: controller.signal,
