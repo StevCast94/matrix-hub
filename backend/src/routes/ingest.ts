@@ -66,6 +66,33 @@ ingestRoutes.post('/event', async (req, res) => {
 });
 
 /**
+ * GET /api/ingest/digest — resumen para el boot de agentes (Timmy).
+ * Tasks activas + timeline reciente. Auth: x-agent-secret.
+ */
+ingestRoutes.get('/digest', async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 10, 50);
+    const [tasks, events] = await Promise.all([
+      prisma.task.findMany({
+        where: { status: { in: ['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW'] }, deletedAt: null },
+        orderBy: { updatedAt: 'desc' },
+        take: 30,
+        select: { id: true, title: true, status: true, priority: true, approvalLevel: true, projectId: true, updatedAt: true },
+      }),
+      prisma.timelineEvent.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: { id: true, type: true, actorId: true, title: true, projectId: true, createdAt: true },
+      }),
+    ]);
+    res.json({ ok: true, tasks, events });
+  } catch (err) {
+    console.error('Error en /ingest/digest:', err);
+    res.status(500).json({ error: 'No se pudo leer el digest' });
+  }
+});
+
+/**
  * POST /api/ingest/memory — upsert de AiMemory (memoria compartida Timmy↔Cosmo↔Wanda).
  * Body: { key, content, scope?, projectSlug?, createdBy? }
  */
